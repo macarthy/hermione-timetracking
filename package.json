@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:build": "docker build -t hermione-timetracking .",
+    "docker:run": "docker run -p 3000:3000 hermione-timetracking",
+    "docker:compose": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f hermione"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.16.0",
