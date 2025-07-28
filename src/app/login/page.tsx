@@ -2,79 +2,67 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useState } from 'react'
+import { signIn, getSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  })
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
-  const handleLogin = async () => {
-    // This would integrate with Azure AD in production
-    // For now, just redirect to admin (demo purposes)
-    window.location.href = '/admin'
+  useEffect(() => {
+    // Check if user is already logged in
+    getSession().then((session) => {
+      if (session) {
+        router.push('/admin')
+      }
+    })
+  }, [router])
+
+  const handleAzureSignIn = async () => {
+    setIsLoading(true)
+    try {
+      const result = await signIn('azure-ad', { 
+        callbackUrl: '/admin',
+        redirect: false 
+      })
+      
+      if (result?.ok) {
+        router.push('/admin')
+      } else if (result?.error) {
+        console.error('Sign in error:', result.error)
+        alert('Sign in failed. Please try again.')
+      }
+    } catch (error) {
+      console.error('Sign in error:', error)
+      alert('Sign in failed. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Hermione Admin</CardTitle>
+          <CardTitle className="text-2xl font-bold">Hermione</CardTitle>
           <CardDescription>
-            Sign in to access the admin dashboard
+            Sign in with your Microsoft account to access the system
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={credentials.email}
-              onChange={(e) => setCredentials({...credentials, email: e.target.value})}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={credentials.password}
-              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-            />
-          </div>
           <Button 
-            onClick={handleLogin} 
+            onClick={handleAzureSignIn}
             className="w-full"
-            disabled={!credentials.email || !credentials.password}
+            disabled={isLoading}
           >
-            Sign In
+            {isLoading ? 'Signing in...' : 'Sign in with Microsoft'}
           </Button>
           
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">Or</span>
-            </div>
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Access is restricted to authorized staff members only.</p>
+            <p className="mt-2">If you don't have access, please contact your administrator.</p>
           </div>
-          
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => {
-              // This would trigger Azure AD authentication
-              alert('Azure AD authentication would be triggered here')
-            }}
-          >
-            Sign in with Microsoft
-          </Button>
         </CardContent>
       </Card>
     </div>

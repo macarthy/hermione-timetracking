@@ -1,6 +1,11 @@
-import { Users, Clock, Settings, BarChart3 } from 'lucide-react'
+'use client'
+
+import { Users, Clock, Settings, BarChart3, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { useSession, signOut } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: BarChart3 },
@@ -14,6 +19,8 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  const { data: session } = useSession()
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -42,6 +49,33 @@ export default function AdminLayout({
                   )
                 })}
               </div>
+            </div>
+            
+            {/* User menu */}
+            <div className="flex items-center space-x-4">
+              {session?.user && (
+                <>
+                  <div className="flex items-center space-x-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {session.user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="hidden sm:block">
+                      <p className="text-sm font-medium text-gray-900">{session.user.name}</p>
+                      <p className="text-xs text-gray-500">{session.user.role}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
